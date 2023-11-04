@@ -97,7 +97,7 @@ class _LinksPickerState extends State<LinksPicker> {
                     index,
                     updateParent: true,
                   );
-                  print(form.value);
+
                   widget.onValueChanged(customLinks.value);
                 });
               },
@@ -121,7 +121,7 @@ class _LinksPickerState extends State<LinksPicker> {
                       }),
                       updateParent: true,
                       emitEvent: true);
-                  print(form.value);
+
                   widget.onValueChanged(customLinks.value);
                 });
               },

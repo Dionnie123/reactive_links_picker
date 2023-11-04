@@ -36,9 +36,7 @@ class _FooState extends State<Foo> {
                 actions: [
                   IconButton(
                       onPressed: () {
-                        print("----------------");
-                        print(form.value);
-                        print("----------------");
+                        print("FORM VALUE: ${form.value}");
                       },
                       icon: const Icon(Icons.send))
                 ],
