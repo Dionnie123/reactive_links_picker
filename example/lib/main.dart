@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Reactive Links Picker Demo',
+      title: 'Reactive Links Picker Working Demo',
       theme: ThemeData(
         inputDecorationTheme: const InputDecorationTheme(
             isDense: true,
@@ -31,7 +31,7 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Foo(),
     );
   }
