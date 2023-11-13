@@ -16,32 +16,29 @@ class LinksPicker extends StatefulWidget {
 }
 
 class _LinksPickerState extends State<LinksPicker> {
-  late FormGroup form;
+  final form = FormGroup({
+    'customLinks': FormArray<Map<String, dynamic>>([]),
+  });
 
   FormArray<Map<String, dynamic>> get customLinks =>
       form.control('customLinks') as FormArray<Map<String, dynamic>>;
 
   @override
   void initState() {
-    form = FormGroup({
-      'customLinks': FormArray<Map<String, dynamic>>([]),
-    });
-
     if (widget.value.isNotEmpty) {
       for (var i = 0; i < widget.value.length; i++) {
         final customLink = widget.value[i];
         customLinks.add(
-            FormGroup({
-              'value': FormControl<String>(
-                  value: customLink?['value'],
-                  validators: [const RequiredValidator()]),
-              'custom': FormControl<String>(value: customLink?['custom']),
-              'label': FormControl<String>(value: customLink?['label']),
-              'id': FormControl<String>(
-                  value: "customLink-${UniqueKey()}".toString()),
-            }),
-            updateParent: true,
-            emitEvent: true);
+          FormGroup({
+            'value': FormControl<String>(
+                value: customLink?['value'],
+                validators: [const RequiredValidator()]),
+            'custom': FormControl<String>(value: customLink?['custom']),
+            'label': FormControl<String>(value: customLink?['label']),
+            'id': FormControl<String>(
+                value: "customLink-${UniqueKey()}".toString()),
+          }),
+        );
       }
     }
 
