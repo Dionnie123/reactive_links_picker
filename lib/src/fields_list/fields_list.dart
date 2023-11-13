@@ -226,6 +226,8 @@ class _LinksListState extends State<FieldsList> {
                                                             horizontal: 12),
                                                   ),
                                                 ),
+                                                Text(
+                                                    '${form.control('customLinks.$i.id').value}')
                                               ],
                                             ),
                                           ),

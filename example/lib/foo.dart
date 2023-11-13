@@ -27,21 +27,21 @@ class _FooState extends State<Foo> {
 
   @override
   Widget build(BuildContext context) {
-    return MediaQuery.of(context).size.width > 600
-        ? ReactiveForm(
-            formGroup: form,
-            child: Scaffold(
-              appBar: AppBar(
-                title: const Text("Reactive Links Picker"),
-                actions: [
-                  IconButton(
-                      onPressed: () {
-                        print("FORM VALUE: ${form.value}");
-                      },
-                      icon: const Icon(Icons.send))
-                ],
-              ),
-              body: Column(
+    return ReactiveForm(
+      formGroup: form,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Reactive Links Picker"),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  print("FORM VALUE: ${form.value}");
+                },
+                icon: const Icon(Icons.send))
+          ],
+        ),
+        body: MediaQuery.of(context).size.width > 600
+            ? Column(
                 children: [
                   ReactiveFormConsumer(builder: (context, form, child) {
                     return Text(form.valid.toString());
@@ -52,9 +52,11 @@ class _FooState extends State<Foo> {
                     ),
                   ),
                 ],
+              )
+            : ReactiveLinksPicker(
+                formControlName: 'customLinks',
               ),
-            ),
-          )
-        : const Text("FSDFSF");
+      ),
+    );
   }
 }
