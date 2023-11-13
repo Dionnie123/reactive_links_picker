@@ -28,10 +28,17 @@ class FieldsList extends StatefulWidget {
 class _LinksListState extends State<FieldsList> {
   final _scrollController = ScrollController();
   final gridViewKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final form = ReactiveForm.of(context, listen: false) as FormGroup;
-    double itemHeight = kIsWeb ? 144 : 144;
+    double itemHeight = kIsWeb ? 144 : 138;
 
     removeFocus() {
       final FocusScopeNode currentScope = FocusScope.of(context);
@@ -106,134 +113,121 @@ class _LinksListState extends State<FieldsList> {
                         },
                         children: [
                           for (int i = 0; i < array.controls.length; i++)
-                            LayoutBuilder(
-                                key: Key(
-                                    "${form.control('customLinks.$i.id').value}"),
-                                builder: (context, size) {
-                                  return Center(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        removeFocus();
-                                      },
-                                      child: SizedBox(
-                                        height: itemHeight,
-                                        width: size.maxWidth,
-                                        child: Card(
-                                          margin: EdgeInsets.zero,
-                                          shape: RoundedRectangleBorder(
-                                              side: BorderSide(
-                                                  color: form
-                                                          .control(
-                                                              "customLinks.$i")
-                                                          .valid
-                                                      ? Colors.transparent
-                                                      : Colors.red,
-                                                  width: 2.0),
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0)),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Column(
-                                              children: [
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    Wrap(
-                                                      children: [
-                                                        GestureDetector(
-                                                            child: const Icon(Icons
-                                                                .sort_rounded)),
-                                                        const SizedBox(
-                                                          width: 8.0,
-                                                        ),
-                                                        Text(
-                                                            "${form.control('customLinks.$i.label').value}")
-                                                      ],
-                                                    ),
-                                                    GestureDetector(
-                                                        onTap: () async {
-                                                          await showDeleteDialog(
-                                                                  context)
-                                                              .then((value) {
-                                                            if (value == true) {
-                                                              widget
-                                                                  .onRemovedAt(
-                                                                      i);
-                                                            }
-                                                          });
-                                                        },
-                                                        child: const Icon(Icons
-                                                            .clear_rounded))
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                ReactiveTextField(
-                                                  onChanged: (control) {
-                                                    widget.onUpdate(
-                                                        i,
-                                                        CustomLink.fromJson(
-                                                            control.parent
-                                                                    ?.value
-                                                                as Map<String,
-                                                                    dynamic>));
-                                                  },
-
-                                                  showErrors: (control) {
-                                                    return false;
-                                                  },
-                                                  formControl: form.control(
-                                                          'customLinks.$i.value')
-                                                      as FormControl,
-                                                  //  formControlName: '$i.value',
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    isDense: true,
-                                                    filled: false,
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            vertical: 12,
-                                                            horizontal: 12),
+                            Center(
+                              key: Key(
+                                  "${form.control('customLinks.$i.id').value}"),
+                              child: GestureDetector(
+                                onTap: () {
+                                  removeFocus();
+                                },
+                                child: SizedBox(
+                                  height: itemHeight,
+                                  width: double.infinity,
+                                  child: Card(
+                                    margin: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                        side: BorderSide(
+                                            color: form
+                                                    .control("customLinks.$i")
+                                                    .valid
+                                                ? Colors.transparent
+                                                : Colors.red,
+                                            width: 2.0),
+                                        borderRadius:
+                                            BorderRadius.circular(8.0)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Wrap(
+                                                children: [
+                                                  GestureDetector(
+                                                      child: const Icon(
+                                                          Icons.sort_rounded)),
+                                                  const SizedBox(
+                                                    width: 8.0,
                                                   ),
-                                                ),
-                                                const SizedBox(height: 8),
-                                                ReactiveTextField(
-                                                  onChanged: (control) {
-                                                    widget.onUpdate(
-                                                        i,
-                                                        CustomLink.fromJson(
-                                                            control.parent
-                                                                    ?.value
-                                                                as Map<String,
-                                                                    dynamic>));
+                                                  Text(
+                                                      "${form.control('customLinks.$i.label').value}")
+                                                ],
+                                              ),
+                                              GestureDetector(
+                                                  onTap: () async {
+                                                    await showDeleteDialog(
+                                                            context)
+                                                        .then((value) {
+                                                      if (value == true) {
+                                                        widget.onRemovedAt(i);
+                                                      }
+                                                    });
                                                   },
+                                                  child: const Icon(
+                                                      Icons.clear_rounded))
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          ReactiveTextField(
+                                            onChanged: (control) {
+                                              widget.onUpdate(
+                                                  i,
+                                                  CustomLink.fromJson(control
+                                                          .parent?.value
+                                                      as Map<String, dynamic>));
+                                            },
 
-                                                  showErrors: (control) {
-                                                    return false;
-                                                  },
-                                                  formControl: form.control(
-                                                          'customLinks.$i.custom')
-                                                      as FormControl,
-                                                  //  formControlName: '$i.custom',
-                                                  decoration:
-                                                      const InputDecoration(
-                                                    isDense: true,
-                                                    filled: false,
-                                                    contentPadding:
-                                                        EdgeInsets.symmetric(
-                                                            vertical: 12,
-                                                            horizontal: 12),
-                                                  ),
-                                                ),
-                                              ],
+                                            showErrors: (control) {
+                                              return false;
+                                            },
+                                            formControl: form.control(
+                                                    'customLinks.$i.value')
+                                                as FormControl,
+                                            //  formControlName: '$i.value',
+                                            decoration: const InputDecoration(
+                                              isDense: true,
+                                              filled: false,
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                      horizontal: 12),
                                             ),
                                           ),
-                                        ),
+                                          const SizedBox(height: 8),
+                                          ReactiveTextField(
+                                            onChanged: (control) {
+                                              widget.onUpdate(
+                                                  i,
+                                                  CustomLink.fromJson(control
+                                                          .parent?.value
+                                                      as Map<String, dynamic>));
+                                            },
+
+                                            showErrors: (control) {
+                                              return false;
+                                            },
+                                            formControl: form.control(
+                                                    'customLinks.$i.custom')
+                                                as FormControl,
+                                            //  formControlName: '$i.custom',
+                                            decoration: const InputDecoration(
+                                              isDense: true,
+                                              filled: false,
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 12,
+                                                      horizontal: 12),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                }),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ],
