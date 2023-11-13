@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'fields_list/fields_list.dart';
@@ -25,23 +27,24 @@ class _LinksPickerState extends State<LinksPicker> {
 
   @override
   void initState() {
-    if (widget.value.isNotEmpty) {
-      for (var i = 0; i < widget.value.length; i++) {
-        print("eeee");
-        final customLink = widget.value[i];
-        customLinks.add(
-          FormGroup({
-            'value': FormControl<String>(
-                value: customLink?['value'],
-                validators: [const RequiredValidator()]),
-            'custom': FormControl<String>(value: customLink?['custom']),
-            'label': FormControl<String>(value: customLink?['label']),
-            'id': FormControl<String>(
-                value: "customLink-${UniqueKey()}".toString()),
-          }),
-        );
+    Timer.run(() {
+      if (widget.value.isNotEmpty) {
+        for (var i = 0; i < widget.value.length; i++) {
+          final customLink = widget.value[i];
+          customLinks.add(
+            FormGroup({
+              'value': FormControl<String>(
+                  value: customLink?['value'],
+                  validators: [const RequiredValidator()]),
+              'custom': FormControl<String>(value: customLink?['custom']),
+              'label': FormControl<String>(value: customLink?['label']),
+              'id': FormControl<String>(
+                  value: "customLink-${UniqueKey()}".toString()),
+            }),
+          );
+        }
       }
-    }
+    });
 
     super.initState();
   }
