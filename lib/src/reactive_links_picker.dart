@@ -27,20 +27,22 @@ class _LinksPickerState extends State<LinksPicker> {
       'customLinks': FormArray<Map<String, dynamic>>([]),
     });
 
-    for (var i = 0; i < widget.value.length; i++) {
-      final customLink = widget.value[i];
-      customLinks.add(
-          FormGroup({
-            'value': FormControl<String>(
-                value: customLink?['value'],
-                validators: [const RequiredValidator()]),
-            'custom': FormControl<String>(value: customLink?['custom']),
-            'label': FormControl<String>(value: customLink?['label']),
-            'id': FormControl<String>(
-                value: "customLink-${UniqueKey()}".toString()),
-          }),
-          updateParent: true,
-          emitEvent: true);
+    if (widget.value.isNotEmpty) {
+      for (var i = 0; i < widget.value.length; i++) {
+        final customLink = widget.value[i];
+        customLinks.add(
+            FormGroup({
+              'value': FormControl<String>(
+                  value: customLink?['value'],
+                  validators: [const RequiredValidator()]),
+              'custom': FormControl<String>(value: customLink?['custom']),
+              'label': FormControl<String>(value: customLink?['label']),
+              'id': FormControl<String>(
+                  value: "customLink-${UniqueKey()}".toString()),
+            }),
+            updateParent: true,
+            emitEvent: true);
+      }
     }
 
     super.initState();
@@ -139,7 +141,6 @@ class ReactiveLinksPicker extends ReactiveFormField<List<Map<String, dynamic>>,
     Key? key,
     String? formControlName,
     FormControl<List<Map<String, dynamic>>>? formControl,
-    List<List<Map<String, dynamic>>> colors = const [],
   }) : super(
           key: key,
           formControlName: formControlName,
@@ -150,10 +151,9 @@ class ReactiveLinksPicker extends ReactiveFormField<List<Map<String, dynamic>>,
               onValueChanged: (customLinks) {
                 final List<Map<String, dynamic>>? x =
                     customLinks?.cast<Map<String, dynamic>>();
-
                 field.control.value = x ?? [];
+                field.didChange;
                 field.control.markAsDirty();
-                field.didChange(x);
                 field.control.updateValueAndValidity();
               },
             );
