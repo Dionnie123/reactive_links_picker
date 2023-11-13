@@ -18,35 +18,35 @@ class LinksPicker extends StatefulWidget {
 }
 
 class _LinksPickerState extends State<LinksPicker> {
-  final form = FormGroup({
-    'customLinks': FormArray<Map<String, dynamic>>([]),
-  });
+  late FormGroup form;
 
   FormArray<Map<String, dynamic>> get customLinks =>
       form.control('customLinks') as FormArray<Map<String, dynamic>>;
 
   @override
   void initState() {
-    Timer.run(() {
-      if (widget.value.isNotEmpty) {
-        for (var i = 0; i < widget.value.length; i++) {
-          final customLink = widget.value[i];
-          customLinks.add(
-            FormGroup({
-              'value': FormControl<String>(
-                  value: customLink?['value'],
-                  validators: [const RequiredValidator()]),
-              'custom': FormControl<String>(value: customLink?['custom']),
-              'label': FormControl<String>(value: customLink?['label']),
-              'id': FormControl<String>(
-                  value: "customLink-${UniqueKey()}".toString()),
-            }),
-          );
-        }
-      }
+    form = FormGroup({
+      'customLinks': FormArray<Map<String, dynamic>>(widget.value.map((e) {
+        final customLink = e;
+        return FormGroup({
+          'value': FormControl<String>(
+              value: customLink?['value'],
+              validators: [const RequiredValidator()]),
+          'custom': FormControl<String>(value: customLink?['custom']),
+          'label': FormControl<String>(value: customLink?['label']),
+          'id': FormControl<String>(
+              value: "customLink-${UniqueKey()}".toString()),
+        });
+      }).toList()),
     });
 
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant LinksPicker oldWidget) {
+    // TODO: implement didUpdateWidget
+    super.didUpdateWidget(oldWidget);
   }
 
   @override
