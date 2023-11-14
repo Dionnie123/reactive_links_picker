@@ -111,7 +111,7 @@ class FieldItem extends StatelessWidget {
                             child: const Icon(Icons.clear_rounded))
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12.0),
                     ReactiveTextField(
                       onChanged: (control) {
                         onUpdate(
