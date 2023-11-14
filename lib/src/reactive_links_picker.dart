@@ -1,10 +1,20 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'fields_list/fields_list.dart';
 import 'icons_list/icons_list.dart';
 import 'link_types.dart';
+
+FormGroup mapToFormGroup(Map<String, dynamic>? data) {
+  return FormGroup({
+    'id': FormControl<String>(value: "customLink-${UniqueKey()}"),
+    'value': FormControl<String>(
+      value: data?['value'],
+      validators: [const RequiredValidator()],
+    ),
+    'custom': FormControl<String>(value: data?['custom']),
+    'label': FormControl<String>(value: data?['label']),
+  });
+}
 
 class LinksPicker extends StatefulWidget {
   final List<Map<String, dynamic>?> value;
@@ -18,35 +28,18 @@ class LinksPicker extends StatefulWidget {
 }
 
 class _LinksPickerState extends State<LinksPicker> {
-  late FormGroup form;
-
+  FormGroup form = FormGroup({
+    'customLinks': FormArray<Map<String, dynamic>>([]),
+  });
   FormArray<Map<String, dynamic>> get customLinks =>
       form.control('customLinks') as FormArray<Map<String, dynamic>>;
 
   @override
   void initState() {
-    form = FormGroup({
-      'customLinks': FormArray<Map<String, dynamic>>(widget.value.map((e) {
-        final customLink = e;
-        return FormGroup({
-          'value': FormControl<String>(
-              value: customLink?['value'],
-              validators: [const RequiredValidator()]),
-          'custom': FormControl<String>(value: customLink?['custom']),
-          'label': FormControl<String>(value: customLink?['label']),
-          'id': FormControl<String>(
-              value: "customLink-${UniqueKey()}".toString()),
-        });
-      }).toList()),
-    });
-
+    for (var i = 0; i < widget.value.length; i++) {
+      customLinks.add(mapToFormGroup(widget.value[i]));
+    }
     super.initState();
-  }
-
-  @override
-  void didUpdateWidget(covariant LinksPicker oldWidget) {
-    // TODO: implement didUpdateWidget
-    super.didUpdateWidget(oldWidget);
   }
 
   @override
@@ -60,84 +53,47 @@ class _LinksPickerState extends State<LinksPicker> {
   Widget build(BuildContext context) {
     return ReactiveForm(
       formGroup: form,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            constraints: const BoxConstraints(minHeight: 150),
-            child: FieldsList(
-              onUpdate: (index, link) {
-                customLinks.insert(
-                    index,
-                    FormGroup({
-                      'value': FormControl<String>(
-                          value: link.value,
-                          validators: [const RequiredValidator()]),
-                      'custom': FormControl<String>(value: link.custom),
-                      'label': FormControl<String>(value: link.label),
-                      'id': FormControl<String>(
-                          value: "customLink-${UniqueKey()}".toString()),
-                    }),
-                    updateParent: true);
-                customLinks.removeAt(index, updateParent: true);
-                widget.onValueChanged(customLinks.value);
-              },
-              onReorder: (oldIndex, newIndex) async {
-                final a = customLinks.controls[oldIndex];
-                final b = customLinks.controls[newIndex];
-
-                customLinks.insert(
-                  newIndex,
-                  a,
-                );
-                customLinks.insert(oldIndex, b);
-
-                customLinks.removeAt(
-                  oldIndex,
-                );
-                customLinks.removeAt(
-                  newIndex,
-                );
-                widget.onValueChanged(customLinks.value);
-              },
-              onRemovedAt: (index) {
-                setState(() {
-                  customLinks.removeAt(
-                    index,
-                    updateParent: true,
-                  );
-
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              constraints: const BoxConstraints(minHeight: 150),
+              child: FieldsList(
+                onUpdateAt: (index, link) {
+                  customLinks.insert(index, mapToFormGroup(link.toJson()));
+                  customLinks.removeAt(index);
                   widget.onValueChanged(customLinks.value);
-                });
-              },
-            ),
-          ),
-          Container(
-            constraints: const BoxConstraints(minHeight: 150),
-            child: IconsList(
-              customLinks: linkTypes,
-              onLinkCreated: (customLink) {
-                setState(() {
-                  customLinks.add(
-                      FormGroup({
-                        'value': FormControl<String>(
-                            value: customLink.value,
-                            validators: [const RequiredValidator()]),
-                        'custom': FormControl<String>(value: customLink.custom),
-                        'label': FormControl<String>(value: customLink.label),
-                        'id': FormControl<String>(
-                            value: "customLink-${UniqueKey()}".toString()),
-                      }),
-                      updateParent: true,
-                      emitEvent: true);
-
+                },
+                onReorder: (value) async {
+                  customLinks.clear();
+                  for (var i = 0; i < value.length; i++) {
+                    customLinks.add(mapToFormGroup(value[i]));
+                  }
                   widget.onValueChanged(customLinks.value);
-                });
-              },
+                },
+                onRemovedAt: (index) {
+                  customLinks.removeAt(index);
+                  widget.onValueChanged(customLinks.value);
+                },
+              ),
             ),
-          ),
-        ],
+            Container(
+              height:
+                  ((MediaQuery.of(context).size.height - kToolbarHeight) / 2) +
+                      150,
+              constraints: const BoxConstraints(minHeight: 150),
+              child: IconsList(
+                customLinks: linkTypes,
+                onLinkCreated: (customLink) {
+                  customLinks.add(mapToFormGroup(customLink.toJson()));
+                  widget.onValueChanged(customLinks.value);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

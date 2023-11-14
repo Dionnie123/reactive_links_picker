@@ -1,24 +1,20 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_reorderable_grid_view/entities/order_update_entity.dart';
-import 'package:flutter_reorderable_grid_view/widgets/reorderable_builder.dart';
+import 'package:flutter/material.dart' hide ReorderableList;
+import 'package:flutter_reorderable_list/flutter_reorderable_list.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import '../helpers/list_extenstion.dart';
-import '../helpers/sliver_grid_delegate.dart';
-import '../models/custom_link.dart';
-import 'dialog.dart';
+import 'package:reactive_links_picker/reactive_links_picker.dart';
+import 'package:reactive_links_picker/src/fields_list/field_item.dart';
 
 class FieldsList extends StatefulWidget {
-  final Function(int index, CustomLink link) onUpdate;
-  final Function(int oldIndex, int newIndex) onReorder;
+  final Function(int index, CustomLink link) onUpdateAt;
+  final Function(List<Map<String, dynamic>> value) onReorder;
   final Function(int index) onRemovedAt;
-
   const FieldsList({
     super.key,
     required this.onReorder,
     required this.onRemovedAt,
-    required this.onUpdate,
+    required this.onUpdateAt,
   });
 
   @override
@@ -26,213 +22,128 @@ class FieldsList extends StatefulWidget {
 }
 
 class _LinksListState extends State<FieldsList> {
-  final _scrollController = ScrollController();
-  final gridViewKey = GlobalKey();
+  late FormGroup form;
+  late FormArray formArray;
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  DraggingMode draggingMode = DraggingMode.iOS;
+  double itemHeight = kIsWeb ? 144 : 138;
 
   @override
   Widget build(BuildContext context) {
-    final form = ReactiveForm.of(context, listen: false) as FormGroup;
-    double itemHeight = kIsWeb ? 144 : 138;
-
-    removeFocus() {
-      final FocusScopeNode currentScope = FocusScope.of(context);
-      if (!currentScope.hasPrimaryFocus && currentScope.hasFocus) {
-        FocusManager.instance.primaryFocus?.unfocus();
-      }
+    form = ReactiveForm.of(context) as FormGroup;
+    formArray = form.control('customLinks') as FormArray<Map<String, dynamic>>;
+    List<FieldItem> items = [];
+    for (var i = 0; i < formArray.controls.length; i++) {
+      items.add(FieldItem(
+          data: formArray.controls[i].value,
+          index: i,
+          orderKey: ValueKey(i),
+          isFirst: i == 0,
+          isLast: i == formArray.controls.length - 1,
+          draggingMode: DraggingMode.iOS,
+          onRemove: (index) {
+            widget.onRemovedAt(index);
+          },
+          onUpdate: (index, value) {
+            widget.onUpdateAt(index, value);
+          }));
     }
-
     return ReactiveFormArray(
-        formArray:
-            form.control('customLinks') as FormArray<Map<String, dynamic>>,
+        formArray: formArray,
         builder: (context, array, child) {
           return DottedBorder(
-            dashPattern: const [9, 3],
-            borderPadding: const EdgeInsets.all(8.0),
-            strokeCap: StrokeCap.butt,
-            radius: const Radius.circular(12.0),
-            color: Colors.white,
-            strokeWidth: 1,
-            child: array.controls.isEmpty
-                ? SizedBox(
-                    height: itemHeight,
-                    child: const Center(
-                      child: Text("Tap a field to add in your card."),
-                    ),
-                  )
-                : Column(
-                    children: [
-                      ReorderableBuilder(
-                        scrollController: _scrollController,
-                        longPressDelay: const Duration(milliseconds: 300),
-                        onDragEnd: () {},
-                        onDragStarted: () {
-                          removeFocus();
-                        },
-                        onReorder:
-                            (List<OrderUpdateEntity> orderUpdateEntities) {
-                          for (final orderUpdateEntity in orderUpdateEntities) {
-                            try {
-                              array.value?.swap(
-                                orderUpdateEntity.oldIndex,
-                                orderUpdateEntity.newIndex,
-                              );
-                              final oldControl =
-                                  array.controls[orderUpdateEntity.oldIndex];
-                              array.removeAt(orderUpdateEntity.oldIndex);
-                              array.insert(
-                                  orderUpdateEntity.newIndex, oldControl);
-                              widget.onReorder(
-                                orderUpdateEntity.oldIndex,
-                                orderUpdateEntity.newIndex,
-                              );
-                            } catch (e) {}
-                          }
-
-                          /*   */
-                        },
-                        builder: (children) {
-                          return GridView(
-                            padding: const EdgeInsets.all(12),
-                            shrinkWrap: true,
-                            key: gridViewKey,
-                            controller: _scrollController,
-                            gridDelegate:
-                                SliverGridDelegateWithFixedCrossAxisCountAndFixedHeight(
-                                    crossAxisCount: 1,
-                                    crossAxisSpacing: 8.0,
-                                    mainAxisSpacing: 8.0,
-                                    height: itemHeight),
-                            children: children,
-                          );
-                        },
-                        children: [
-                          for (int i = 0; i < array.controls.length; i++)
-                            Center(
-                              key: Key(
-                                  "${form.control('customLinks.$i.id').value}"),
-                              child: GestureDetector(
-                                onTap: () {
-                                  removeFocus();
-                                },
-                                child: SizedBox(
-                                  height: itemHeight,
-                                  width: double.infinity,
-                                  child: Card(
-                                    margin: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                        side: BorderSide(
-                                            color: form
-                                                    .control("customLinks.$i")
-                                                    .valid
-                                                ? Colors.transparent
-                                                : Colors.red,
-                                            width: 2.0),
-                                        borderRadius:
-                                            BorderRadius.circular(8.0)),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Column(
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Wrap(
-                                                children: [
-                                                  GestureDetector(
-                                                      child: const Icon(
-                                                          Icons.sort_rounded)),
-                                                  const SizedBox(
-                                                    width: 8.0,
-                                                  ),
-                                                  Text(
-                                                      "${form.control('customLinks.$i.label').value}")
-                                                ],
-                                              ),
-                                              GestureDetector(
-                                                  onTap: () async {
-                                                    await showDeleteDialog(
-                                                            context)
-                                                        .then((value) {
-                                                      if (value == true) {
-                                                        widget.onRemovedAt(i);
-                                                      }
-                                                    });
-                                                  },
-                                                  child: const Icon(
-                                                      Icons.clear_rounded))
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          ReactiveTextField(
-                                            onChanged: (control) {
-                                              widget.onUpdate(
-                                                  i,
-                                                  CustomLink.fromJson(control
-                                                          .parent?.value
-                                                      as Map<String, dynamic>));
-                                            },
-
-                                            showErrors: (control) {
-                                              return false;
-                                            },
-                                            formControl: form.control(
-                                                    'customLinks.$i.value')
-                                                as FormControl,
-                                            //  formControlName: '$i.value',
-                                            decoration: const InputDecoration(
-                                              isDense: true,
-                                              filled: false,
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      vertical: 12,
-                                                      horizontal: 12),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          ReactiveTextField(
-                                            onChanged: (control) {
-                                              widget.onUpdate(
-                                                  i,
-                                                  CustomLink.fromJson(control
-                                                          .parent?.value
-                                                      as Map<String, dynamic>));
-                                            },
-
-                                            showErrors: (control) {
-                                              return false;
-                                            },
-                                            formControl: form.control(
-                                                    'customLinks.$i.custom')
-                                                as FormControl,
-                                            //  formControlName: '$i.custom',
-                                            decoration: const InputDecoration(
-                                              isDense: true,
-                                              filled: false,
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      vertical: 12,
-                                                      horizontal: 12),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+              dashPattern: const [9, 3],
+              borderPadding: const EdgeInsets.all(8.0),
+              strokeCap: StrokeCap.butt,
+              radius: const Radius.circular(12.0),
+              strokeWidth: 1,
+              child: array.controls.isEmpty
+                  ? SizedBox(
+                      height: itemHeight,
+                      child: const Center(
+                        child: Text("Tap a field to add in your card."),
                       ),
-                    ],
-                  ),
-          );
+                    )
+                  : SorterList(
+                      items: items,
+                      onReorder: (value) {
+                        widget.onReorder(value);
+                      },
+                    ));
         });
+  }
+}
+
+class SorterList extends StatefulWidget {
+  final Function(List<Map<String, dynamic>> value) onReorder;
+  final List<FieldItem> items;
+  const SorterList({super.key, required this.items, required this.onReorder});
+
+  @override
+  State<SorterList> createState() => _SorterListState();
+}
+
+class _SorterListState extends State<SorterList> {
+  @override
+  Widget build(BuildContext context) {
+    int indexOfKey(Key key) {
+      return widget.items.indexWhere((v) => v.orderKey == key);
+    }
+
+    bool reorderCallback(Key item, Key newPosition) {
+      int draggingIndex = indexOfKey(item);
+      int newPositionIndex = indexOfKey(newPosition);
+      final draggedItem = widget.items[draggingIndex];
+      debugPrint("Reordering $draggingIndex -> $newPositionIndex");
+      setState(() {
+        widget.items.removeAt(draggingIndex);
+        widget.items.insert(newPositionIndex, draggedItem);
+      });
+      return true;
+    }
+
+    void reorderDone(Key item) {
+      final draggedItem = widget.items[indexOfKey(item)];
+      debugPrint("Reordering finished for ${draggedItem.index}");
+      List<Map<String, dynamic>> reorderedItems = [];
+      for (var i = 0; i < widget.items.length; i++) {
+        reorderedItems.add(widget.items[i].data);
+      }
+      widget.onReorder(reorderedItems);
+    }
+
+    return ReorderableList(
+      onReorder: reorderCallback,
+      onReorderDone: reorderDone,
+      decoratePlaceholder: (widget, decorationOpacity) {
+        return DecoratedPlaceholder(
+            offset: 0.0,
+            widget: Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0)),
+                margin: EdgeInsets.zero,
+                elevation: 5,
+                child: widget));
+      },
+      child: CustomScrollView(
+        shrinkWrap: true,
+        slivers: <Widget>[
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return Padding(
+                      padding: EdgeInsets.only(
+                          bottom: index != widget.items.length - 1 ? 8.0 : 0.0),
+                      child: widget.items[index]);
+                },
+                childCount: widget.items.length,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
   }
 }

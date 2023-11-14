@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=C:\Users\Dionee\Desktop\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\Mark Dionnie\Desktop\SHEESH\digicard\packages\reactive_links_picker"
+export "FLUTTER_APPLICATION_PATH=C:\Users\Dionee\Desktop\reactive_links_picker"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=0.0.1"
